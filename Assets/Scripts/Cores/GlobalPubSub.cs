@@ -79,4 +79,11 @@ public class PlayerDieMessage : GlobalMessage
 }
 
 public class AsteroidSpawnMessage : GlobalMessage { }
-public class AsteroidDieMessage: GlobalMessage { }
+public class AsteroidDieMessage: GlobalMessage 
+{
+    public int AsteroidLevel;
+    public AsteroidDieMessage(int level)
+    {
+        AsteroidLevel = level;
+    }
+}

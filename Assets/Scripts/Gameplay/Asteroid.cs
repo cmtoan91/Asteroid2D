@@ -41,14 +41,14 @@ public class Asteroid : MonoBehaviour, IHealthHandler
         _level--;
         if(_level > 0)
         {
-            for (int i = 0; i < _level + 1; i++)
+            for (int i = 0; i < 2; i++)
             {   
                 float angle = Random.Range(-90f, 90f);
                 Vector3 dir = Quaternion.AngleAxis(angle, Vector3.forward) * transform.up;
-                GameManager.Instance.SpawnAsteroid(transform.position, _level, 4f/(float)_level, dir);
+                GameManager.Instance.SpawnAsteroid(transform.position, _level, Mathf.Sqrt(4f/(float)_level), dir);
             }
         }
-        GlobalPubSub.PublishEvent(new AsteroidDieMessage());
+        GlobalPubSub.PublishEvent(new AsteroidDieMessage(_level + 1));
         PoolManager.ReleaseInstance(this);
     }
 }

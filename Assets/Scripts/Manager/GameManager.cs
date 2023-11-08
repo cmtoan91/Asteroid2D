@@ -6,7 +6,6 @@ public class GameManager : SimpleSingleton<GameManager>
 {
     public int CurrentLife = 3;
     Player _player;
-    Vector3 _startPos;
 
     [SerializeField]
     int _defaultAsteroidLevel = 4;
@@ -15,10 +14,11 @@ public class GameManager : SimpleSingleton<GameManager>
     int _defaultAsteroidCount = 5;
 
     public Asteroid _asteroidPrefab;
-
+    public int CurrentScore;
     [SerializeField]
     List<Transform> _spawnPositions;
 
+    [SerializeField]
     int _curentAsteroidCount;
     public Bounds GameBound;
     [SerializeField]
@@ -62,16 +62,13 @@ public class GameManager : SimpleSingleton<GameManager>
                 currentSpawnIdx = 0;
             }
         }
+        GUI_Canvas.Instance.InitLifeDisplay(CurrentLife);
     }
 
-    void GameClear()
+    void GameClear(bool isWin)
     {
-
-    }
-
-    void GameOver()
-    {
-
+        _player.gameObject.SetActive(false);
+        GUI_Canvas.Instance.FinishGame(isWin);
     }
 
     void OnPlayerDie(PlayerDieMessage msg)
@@ -79,18 +76,19 @@ public class GameManager : SimpleSingleton<GameManager>
         CurrentLife--;
         if (CurrentLife >= 0)
         {
-            ResetPlayerPosition();
+            _player?.OnReinit();
+            GUI_Canvas.Instance.UpdateLife(CurrentLife);
         }
         else
         {
-            GameOver();
+            CurrentLife = 0;
+            GameClear(false);
         }
     }
 
     void OnPlayerSpawn(PlayerSpawnMessage msg)
     {
         _player = msg.Player;
-        _startPos = _player.transform.position;
     }
 
     void OnAsteroidSpawn(AsteroidSpawnMessage msg)
@@ -107,15 +105,14 @@ public class GameManager : SimpleSingleton<GameManager>
     void OnAsteroidDie(AsteroidDieMessage msg)
     {
         _curentAsteroidCount--;
-        if(_curentAsteroidCount < 0)
+        CurrentScore += msg.AsteroidLevel * 100;
+        GUI_Canvas.Instance.UpdateScore(CurrentScore);
+        if (_curentAsteroidCount <= 0)
         {
-            GameClear();
+            GameClear(true);
         }
     }
-    void ResetPlayerPosition()
-    {
-        _player.transform.position = _startPos;
-    }
+
     private void OnTriggerExit2D(Collider2D collision)
     {
         if (collision.tag == "Bullet") return;
@@ -125,6 +122,14 @@ public class GameManager : SimpleSingleton<GameManager>
         if (collision.transform.position.x < GameBound.Left) newposition.x = GameBound.Right;
         if (collision.transform.position.x > GameBound.Right) newposition.x = GameBound.Left;
         collision.transform.position = newposition;
+    }
+
+    private void OnDestroy()
+    {
+        GlobalPubSub.UnsubcribeEvent<PlayerSpawnMessage>(OnPlayerSpawn);
+        GlobalPubSub.UnsubcribeEvent<PlayerDieMessage>(OnPlayerDie);
+        GlobalPubSub.UnsubcribeEvent<AsteroidSpawnMessage>(OnAsteroidSpawn);
+        GlobalPubSub.UnsubcribeEvent<AsteroidDieMessage>(OnAsteroidDie);
     }
 }
 

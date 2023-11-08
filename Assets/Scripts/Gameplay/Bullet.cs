@@ -14,10 +14,7 @@ public class Bullet : MonoBehaviour, IHealthHandler
     float _curentLifeTime = 0;
 
     Movement _movement;
-    public void OnTakingDamage(int damage)
-    {
-        PoolManager.ReleaseInstance(this);
-    }
+
 
     private void Awake()
     {
@@ -38,7 +35,16 @@ public class Bullet : MonoBehaviour, IHealthHandler
         }
         else
         {
-            OnTakingDamage(0);
+            Die();
         }
+    }
+    public void OnTakingDamage(int damage)
+    {
+        GlobalVFXManager.Instance.PlayVFX(transform.position, Vector3.one * Random.Range(0.7f, 1), "BulletExplosion", Quaternion.identity, 0.5f);
+        Die();
+    }
+    void Die()
+    {
+        PoolManager.ReleaseInstance(this);
     }
 }
